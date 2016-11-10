@@ -1,7 +1,7 @@
 {
   "name": "nativescript-na-camera",
   "version": "1.0.0",
-  "description": "NativeScript camera plugin",
+  "description": "A NativeScript camera plugin",
   "main": "camera.js",
   "nativescript": {
     "platforms": {
@@ -20,7 +20,10 @@
     "Nordling Art",
     "Camera"
   ],
-  "readme": "# nativescript-na-camera\n",
+  "author": {
+    "name": "Filip Nordling",
+    "email": "nordlingfilip@gmail.com"
+  },
   "readmeFilename": "README.md",
   "gitHead": "c7e662a2781c74949c9c941c62077cf66b97b000",
   "bugs": {
