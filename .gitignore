@@ -1,0 +1,5 @@
+*.log
+demo/lib/
+demo/node_modules/
+demo/platforms/
+.DS_Store

@@ -1,0 +1,30 @@
+{
+  "name": "nativescript-na-camera",
+  "version": "1.0.0",
+  "description": "NativeScript camera plugin",
+  "main": "camera.js",
+  "nativescript": {
+    "platforms": {
+      "ios": "1.7.0"
+    },
+    "tns-ios": {
+      "version": "2.3.0"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nordlingart/nativescript-na-camera.git"
+  },
+  "keywords": [
+    "NativeScript",
+    "Nordling Art",
+    "Camera"
+  ],
+  "readme": "# nativescript-na-camera\n",
+  "readmeFilename": "README.md",
+  "gitHead": "c7e662a2781c74949c9c941c62077cf66b97b000",
+  "bugs": {
+    "url": "https://github.com/nordlingart/nativescript-na-camera/issues"
+  },
+  "homepage": "https://github.com/nordlingart/nativescript-na-camera#readme"
+}
