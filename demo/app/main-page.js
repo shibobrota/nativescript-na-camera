@@ -6,7 +6,7 @@ var cameraPreview, simulatorPreview, capturePreview;
 var page, pageData = new Observable({
   simulatorImage: "http://i.imgur.com/bSkPf1j.jpg",
   simulatorImageLoading: true,
-  simulatorDebug: true,
+  simulatorDebug: false,
   capturePreview: null,
   cameraAvailable: null,
   torchMode: false,
@@ -19,7 +19,7 @@ exports.navigatingTo = function(args) {
   page = args.object;
   page.bindingContext = pageData;
   
-  pageData.cameraAvailable = NACamera.deviceAvailable();
+  pageData.cameraAvailable = NACamera.devicesAvailable();
   pageData.cameraPosition = NACamera.getDevicePosition();
   
   cameraPreview = page.getViewById("cameraPreview");
@@ -47,6 +47,8 @@ exports.capturePhoto = function(args) {
     simulatorDebug: pageData.simulatorDebug,
     simulatorImage: (pageData.simulatorDebug ? simulatorPreview : false)
   }).then(function(image, savedToLibrary) {
+    NACamera.stop();
+    
     console.log("Photo captured" + (savedToLibrary ? " and saved to library!" : "!"));
     console.log("Photo width/height: " + image.width + "x" + image.height);
     
@@ -61,6 +63,8 @@ exports.capturePhoto = function(args) {
 };
 
 exports.newPhoto = function(args) {
+  NACamera.start();
+  
   pageData.capturePreview = null;
   pageData.saveToLibrary = false;
   

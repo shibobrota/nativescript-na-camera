@@ -6,8 +6,7 @@ var View = require("ui/core/view").View;
 var StackLayout = require("ui/layouts/stack-layout").StackLayout;
 
 var NACamera = {};
-var _this, _nativeView, _bounds;
-var _session, _device, _input, _output, _previewLayer;
+var _bounds, _session, _device, _input, _output, _previewLayer;
 var _torchMode = false, _flashMode = false;
 var errorCameraDeviceUnavailable = "Error: Camera device unavailable.";
 var errorCameraTorchUnavailable = "Error: Camera torch unavailable.";
@@ -39,8 +38,6 @@ NACamera.Camera = (function(_super) {
       _previewLayer = AVCaptureVideoPreviewLayer.layerWithSession(_session);
       _previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
       _nativeView.layer.addSublayer(_previewLayer);
-      
-//      _session.startRunning();
     }
   };
   
@@ -49,6 +46,10 @@ NACamera.Camera = (function(_super) {
     _nativeView = this.ios;
     
     enablePinchToZoom(this);
+  };
+  
+  Camera.prototype.onUnloaded = function() {
+    if(_device) _session.stopRunning();
   };
   
   Camera.prototype.onLayout = function(left, top, right, bottom) {
@@ -119,15 +120,17 @@ NACamera.saveToLibrary = function(image) {
 };
 
 // Get device state
-NACamera.deviceAvailable = function(condition) {
-  return (_device ? true : false);
+NACamera.devicesAvailable = function() {
+  var devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo);
+  return (devices.count > 0 ? true : false);
 };
 
 // Torch mode
 NACamera.setTorchMode = function(condition) {
   if(typeof condition !== "undefined" && _device && _device.hasTorch) {
-    _session.beginConfiguration();
-    //_device.lockForConfiguration(null);
+    _device.lockForConfiguration(null);
+//    _session.beginConfiguration();
+    
     if(condition === true) {
       _device.torchMode = AVCaptureTorchModeOn;
       _torchMode = true;
@@ -137,8 +140,9 @@ NACamera.setTorchMode = function(condition) {
       _torchMode = false;
       return false;
     }
-    _session.commitConfiguration();
-    //_device.unlockForConfiguration();
+    
+    _device.unlockForConfiguration();
+//    _session.commitConfiguration();
   } else {
     console.error("[NACamera.setTorchMode] " + errorCameraTorchUnavailable);
     _torchMode = false;
@@ -158,6 +162,8 @@ NACamera.hasTorchMode = function() {
 NACamera.setFlashMode = function(condition) {
   if(typeof condition !== "undefined" && _device && _device.hasFlash) {
     _device.lockForConfiguration(null);
+//    _session.beginConfiguration();
+    
     if(condition === true) {
       _device.flashMode = AVCaptureFlashModeOn;
       _flashMode = true;
@@ -167,7 +173,9 @@ NACamera.setFlashMode = function(condition) {
       _flashMode = false;
       return false;
     }
+    
     _device.unlockForConfiguration();
+//    _session.commitConfiguration();
   } else {
     console.error("[NACamera.setFlashMode] " + errorCameraFlashUnavailable);
     _flashMode = false;
