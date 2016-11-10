@@ -1,6 +1,6 @@
 {
   "name": "nativescript-na-camera",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A NativeScript camera plugin",
   "main": "camera.js",
   "nativescript": {
