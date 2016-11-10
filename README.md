@@ -1,5 +1,7 @@
 # NativeScript NA Camera plugin
 
+![Demo screenshot](/docs/images/screenshot.png?raw=true "Demo screenshot")
+
 **NOTE! Android is currently not supported.**
 
 A NativeScript camera that utilizes *AVFoundation* for iOS.
