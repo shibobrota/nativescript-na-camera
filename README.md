@@ -1,6 +1,6 @@
 # NativeScript NA Camera plugin
 
-![Demo screenshot](/docs/images/screenshot.png?raw=true "Demo screenshot")
+<img src="/docs/images/screenshot.png" width="188" alt="Demo screenshot" title="Demo screenshot" />
 
 **NOTE! Android is currently not supported.**
 
