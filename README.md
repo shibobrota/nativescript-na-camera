@@ -203,7 +203,7 @@ Please post an issue if you have any other ideas!
 
 ## History
 
-#### Version 1.0.0 (18 October 2016)
+#### Version 1.0.0 (November 10, 2016)
 
 - First release!
 
