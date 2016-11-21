@@ -214,7 +214,6 @@ Please post an issue if you have any other ideas!
 - Pinch-to-zoom feature
 - Tap-to-focus feature
 - Added mirror correction property when capturing with the front camera (See `capturePhoto()` documentation).
-- This plugin now requires TNS 2.4.0+
 
 #### Version 1.0.0 (November 10, 2016)
 
