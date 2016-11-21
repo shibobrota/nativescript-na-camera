@@ -1,6 +1,6 @@
 <Page navigatingTo="navigatingTo" xmlns:NACamera="nativescript-na-camera">
   
-  <GridLayout rows="auto, *" id="cameraContainer">
+  <GridLayout rows="auto, *" id="cameraContainer" marginTop="{{ capturePreview ? 0 : -20 }}">
     <NACamera:Camera row="0" id="cameraPreview" />
     
     <GridLayout row="0" visibility="{{ simulatorDebug ? 'visible' : 'collapsed' }}">

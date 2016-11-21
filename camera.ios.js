@@ -4,10 +4,13 @@ var gestures = require("ui/gestures");
 var imageSource = require("image-source");
 var View = require("ui/core/view").View;
 var StackLayout = require("ui/layouts/stack-layout").StackLayout;
+var AbsoluteLayout = require("ui/layouts/absolute-layout").AbsoluteLayout;
+var colorModule = require("color");
 
 var NACamera = {};
 var _bounds, _session, _device, _input, _output, _previewLayer;
 var _torchMode = false, _flashMode = false;
+var _onFocusDelay;
 var errorCameraDeviceUnavailable = "Error: Camera device unavailable.";
 var errorCameraTorchUnavailable = "Error: Camera torch unavailable.";
 var errorCameraFlashUnavailable = "Error: Camera flash unavailable.";
@@ -18,6 +21,8 @@ NACamera.Camera = (function(_super) {
     _super.call(this);
     
     this.constructView();
+    enablePinchToZoom(this);
+    enableTapToFocus(this);
   }
   
   Camera.prototype.constructView = function() {
@@ -41,18 +46,12 @@ NACamera.Camera = (function(_super) {
     }
   };
   
-  Camera.prototype.onLoaded = function() {
-    _this = this;
-    _nativeView = this.ios;
-    
-    enablePinchToZoom(this);
-  };
-  
   Camera.prototype.onUnloaded = function() {
     if(_device) _session.stopRunning();
   };
   
   Camera.prototype.onLayout = function(left, top, right, bottom) {
+    _super.prototype.onLayout.call(this, left, top, right, bottom);
     _this = this;
     _nativeView = this.ios;
     
@@ -81,6 +80,7 @@ NACamera.stop = function() {
 NACamera.capturePhoto = function(props = {}) {
   var defaults = {
     saveToLibrary: false,
+    mirrorCorrection: true,
     playSound: true,
     simulatorDebug: false,
     simulatorImage: ""
@@ -92,8 +92,10 @@ NACamera.capturePhoto = function(props = {}) {
       var videoConnection = _output.connections[0];
 
       _output.captureStillImageAsynchronouslyFromConnectionCompletionHandler(videoConnection, function(buffer, error) {
+        if(NACamera.getDevicePosition() === "back") props.mirrorCorrection = false;
+        
         var imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer);
-        var image = applyAspectFillImageInRect(UIImage.imageWithData(imageData), _bounds);
+        var image = applyAspectFillImageInRect(UIImage.imageWithData(imageData), _bounds, props.mirrorCorrection);
         
         if(props.saveToLibrary) UIImageWriteToSavedPhotosAlbum(image, null, null, null);
         if(props.playSound) AudioServicesPlaySystemSound(144);
@@ -162,7 +164,6 @@ NACamera.hasTorchMode = function() {
 NACamera.setFlashMode = function(condition) {
   if(typeof condition !== "undefined" && _device && _device.hasFlash) {
     _device.lockForConfiguration(null);
-//    _session.beginConfiguration();
     
     if(condition === true) {
       _device.flashMode = AVCaptureFlashModeOn;
@@ -175,7 +176,6 @@ NACamera.setFlashMode = function(condition) {
     }
     
     _device.unlockForConfiguration();
-//    _session.commitConfiguration();
   } else {
     console.error("[NACamera.setFlashMode] " + errorCameraFlashUnavailable);
     _flashMode = false;
@@ -247,7 +247,7 @@ var deviceWithPosition = function(position) {
 };
 
 // Apply AspectFill ratio on captured photo
-var applyAspectFillImageInRect = function(image, bounds) {
+var applyAspectFillImageInRect = function(image, bounds, mirror = false) {
   var minSize = Math.min(image.size.width, image.size.height);
   var aspectRatio = Math.min(minSize / bounds.size.width, minSize / bounds.size.height);
   var width = Math.round(bounds.size.width * aspectRatio);
@@ -260,6 +260,8 @@ var applyAspectFillImageInRect = function(image, bounds) {
   imageView.image = image;
   imageView.contentMode = UIViewContentModeScaleAspectFill;
   renderView.addSubview(imageView);
+  
+  if(mirror) imageView.transform = CGAffineTransformMakeScale(-1, 1);
   
   UIGraphicsBeginImageContext(rect.size);
   var context = UIGraphicsGetCurrentContext();
@@ -274,8 +276,117 @@ var applyAspectFillImageInRect = function(image, bounds) {
 
 // Pinch to zoom
 var enablePinchToZoom = function(view) {
-  view.on(gestures.GestureTypes.pinch, function(e) {
-    console.log(e.scale);
-    console.log(e.state);
+  var lastZoomFactor = 1;
+  
+  view.on("pinch", function(e) {
+    if(_device) {
+      if(e.state === 1) {
+        clearTimeout(_onFocusDelay);
+        lastZoomFactor = _device.videoZoomFactor;
+      } else if(e.state === 2) {
+        var zoomFactor = lastZoomFactor * e.scale;
+        zoomFactor = Math.min(_device.activeFormat.videoMaxZoomFactor, zoomFactor);
+        zoomFactor = Math.max(1, zoomFactor);
+
+        _device.lockForConfiguration(null);
+        _device.videoZoomFactor = zoomFactor;
+        _device.unlockForConfiguration();
+      } else if(e.state === 3) {
+        lastZoomFactor = zoomFactor;
+      }
+    } else {
+      if(e.state === 1) {
+        clearTimeout(_onFocusDelay);
+        console.error(errorCameraDeviceUnavailable);
+      }
+    }
+  });
+};
+
+// Tap to focus
+var enableTapToFocus = function(view) {
+  var focusPoint = {};
+  
+  var focusCircle = new AbsoluteLayout();
+  var focusCircleSize = 48;
+  focusCircle.width = focusCircle.height = focusCircleSize + 8;
+  focusCircle.horizontalAlignment = "left";
+  focusCircle.opacity = 0;
+  focusCircle.clipToBounds = false;
+  focusCircle.ios.layer.shadowColor = new colorModule.Color("#000000").ios.CGColor;
+  focusCircle.ios.layer.shadowOffset = CGSizeZero;
+  focusCircle.ios.layer.shadowOpacity = 0.25;
+  focusCircle.ios.layer.shadowRadius = 2;
+  
+  var focusCircleOuter = new StackLayout();
+  focusCircleOuter.width = focusCircleOuter.height = focusCircleSize;
+  focusCircleOuter.marginTop = focusCircleOuter.marginLeft = 4;
+  focusCircleOuter.borderWidth = 1;
+  focusCircleOuter.borderColor = "#ffffff";
+  focusCircleOuter.borderRadius = focusCircleSize / 2;
+  
+  var focusCircleInner = new StackLayout();
+  focusCircleInner.width = focusCircleInner.height = focusCircleSize - 6;
+  focusCircleInner.marginTop = focusCircleInner.marginLeft = 7;
+  focusCircleInner.backgroundColor = new colorModule.Color(128, 255, 255, 255);
+  focusCircleInner.borderRadius = focusCircleInner.width / 2;
+  focusCircleInner.scaleX = focusCircleInner.scaleY = 0.01;
+  
+  focusCircle.addChild(focusCircleOuter);
+  focusCircle.addChild(focusCircleInner);
+  view.addChild(focusCircle);
+  
+  var animateFocusTimeout;
+  var animateFocusCircle = function() {
+    if(animateFocusTimeout) clearTimeout(animateFocusTimeout);
+    
+    focusCircle.translateX = focusPoint.x - (focusCircle.width / 2);
+    focusCircle.translateY = focusPoint.y - (focusCircle.width / 2);
+    focusCircle.scaleX = focusCircle.scaleY = 0.01;
+    focusCircleInner.scaleX = focusCircleInner.scaleY = 0.01;
+    focusCircleInner.opacity = 1;
+    
+    var duration = 250;
+    var props = { opacity: 1, scale: { x: 1.2, y: 1.2 }, translate: { x: focusCircle.translateX, y: focusCircle.translateY }, duration: duration };
+    
+    focusCircle.animate(props).then(function() {
+      props.scale = { x: 1, y: 1 };
+      focusCircle.animate(props).then(function() {
+        animateFocusTimeout = setTimeout(function() { focusCircle.opacity = 0; }, duration);
+      });
+    });
+    
+    focusCircleInner.animate({ scale: { x: 1, y: 1 }, duration: duration }).then(function() {
+      focusCircleInner.animate({ opacity: 0, duration: duration });
+    });
+  };
+  
+  view.on("touch", function(e) {
+    if(e.action === "down" && e.getPointerCount() === 1) {
+      focusPoint.x = e.getX();
+      focusPoint.y = e.getY();
+      
+      _onFocusDelay = setTimeout(function() {
+        animateFocusCircle();
+        
+        if(_device) {
+          if(_device.focusPointOfInterest && _device.isFocusModeSupported(AVCaptureFocusModeAutoFocus)) {
+            _device.lockForConfiguration(null);
+            
+            _device.focusPointOfInterest = CGPointMake(focusPoint.x, focusPoint.y);
+            _device.focusMode = AVCaptureFocusModeAutoFocus;
+            
+            if(_device.isExposureModeSupported(AVCaptureExposureModeAutoExpose))
+              _device.exposureMode = AVCaptureExposureModeAutoExpose;
+            
+            _device.unlockForConfiguration();
+          }
+        } else {
+          console.error(errorCameraDeviceUnavailable);
+        }
+      }, 200);
+    }
+    
+    if(e.action === "move" && _onFocusDelay) clearTimeout(_onFocusDelay);
   });
 };

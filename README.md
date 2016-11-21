@@ -68,6 +68,7 @@ To capture a photo.
 
 - **props** - Set any capture properties (optional).
   - **saveToLibrary** - Saves the photo to the library upon capture (defaults to `false`).
+  - **mirrorCorrection** - Correct mirroring when capturing with the front camera (defaults to `true`).
   - **playSound** - Plays a capture sound (defaults to `true`).
   - **simulatorDebug** - For testing on a simulator where a camera device is not available (defaults to `false`).
   - **simulatorImage** - The image source (defaults to empty string).
@@ -197,13 +198,16 @@ var hasFrontCamera = NACamera.hasDevicePosition("front");
 ## To-do list
 
 - Video recording
-- Color filtering
-- Pinch-to-zoom
-- Tap-to-focus
 
 Please post an issue if you have any other ideas!
 
 ## History
+
+#### Version 1.1.0 (November 21, 2016)
+
+- Pinch-to-zoom feature
+- Tap-to-focus feature
+- Added mirror correction property when capturing with the front camera (See `capturePhoto()` documentation).
 
 #### Version 1.0.0 (November 10, 2016)
 

@@ -19,6 +19,8 @@ exports.navigatingTo = function(args) {
   page = args.object;
   page.bindingContext = pageData;
   
+  page.backgroundSpanUnderStatusBar = true;
+  
   pageData.cameraAvailable = NACamera.devicesAvailable();
   pageData.cameraPosition = NACamera.getDevicePosition();
   
@@ -56,7 +58,6 @@ exports.capturePhoto = function(args) {
     pageData.saveToLibrary = (!pageData.saveToLibrary ? true : false);
     
     if(page.ios) {
-      page.marginTop = 20;
       UIApplication.sharedApplication.setStatusBarHiddenWithAnimation(true, UIStatusBarAnimation.UIStatusBarAnimationSlide);
     }
   });
@@ -69,7 +70,6 @@ exports.newPhoto = function(args) {
   pageData.saveToLibrary = false;
   
   if(page.ios) {
-    page.marginTop = 0;
     UIApplication.sharedApplication.setStatusBarHiddenWithAnimation(false, UIStatusBarAnimation.UIStatusBarAnimationSlide);
   }
 };
