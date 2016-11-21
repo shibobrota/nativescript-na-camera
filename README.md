@@ -203,7 +203,7 @@ Please post an issue if you have any other ideas!
 
 ## History
 
-#### Version 1.1.0 (November 21, 2016)
+#### Version 1.2.0 (November 21, 2016)
 
 - Pinch-to-zoom feature
 - Tap-to-focus feature
