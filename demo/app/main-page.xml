@@ -1,11 +1,11 @@
-<Page navigatingTo="navigatingTo" xmlns:NACamera="nativescript-na-camera">
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo"
+  xmlns:NACamera="nativescript-na-camera">
   
   <GridLayout rows="auto, *" id="cameraContainer" marginTop="{{ capturePreview ? 0 : -20 }}">
     <NACamera:Camera row="0" id="cameraPreview" />
     
     <GridLayout row="0" visibility="{{ simulatorDebug ? 'visible' : 'collapsed' }}">
       <Image src="{{ simulatorImage }}" id="simulatorPreview" stretch="aspectFill" />
-      <ActivityIndicator busy="{{ simulatorImageLoading }}" id="simulatorPreviewIndicator" />
     </GridLayout>
     
     <Image row="0" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFill" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" tap="test" />

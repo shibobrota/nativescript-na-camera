@@ -1,4 +1,5 @@
 demo/
+demo-tns2/
 *.png
 *.log
 .DS_Store

@@ -1,33 +1,35 @@
-var frameModule = require("ui/frame");
-var builder = require("ui/builder");
-var gestures = require("ui/gestures");
-var imageSource = require("image-source");
-var View = require("ui/core/view").View;
-var StackLayout = require("ui/layouts/stack-layout").StackLayout;
-var AbsoluteLayout = require("ui/layouts/absolute-layout").AbsoluteLayout;
-var colorModule = require("color");
+const frameModule = require("ui/frame");
+const builder = require("ui/builder");
+const gestures = require("ui/gestures");
+const imageSource = require("image-source");
+const View = require("ui/core/view").View;
+const StackLayout = require("ui/layouts/stack-layout").StackLayout;
+const AbsoluteLayout = require("ui/layouts/absolute-layout").AbsoluteLayout;
+const colorModule = require("color");
 
-var NACamera = {};
-var _bounds, _session, _device, _input, _output, _previewLayer;
-var _torchMode = false, _flashMode = false;
-var _onFocusDelay;
-var errorCameraDeviceUnavailable = "Error: Camera device unavailable.";
-var errorCameraTorchUnavailable = "Error: Camera torch unavailable.";
-var errorCameraFlashUnavailable = "Error: Camera flash unavailable.";
+const NACamera = {};
+let _bounds, _session, _device, _input, _output, _previewLayer;
+let _torchMode = false, _flashMode = false;
+let _onFocusDelay;
+const errorCameraDeviceUnavailable = "Error: Camera device unavailable.";
+const errorCameraTorchUnavailable = "Error: Camera torch unavailable.";
+const errorCameraFlashUnavailable = "Error: Camera flash unavailable.";
 
 NACamera.Camera = (function(_super) {
   __extends(Camera, _super);
   function Camera() {
-    _super.call(this);
+    const _this = _super !== null && _super.apply(this, arguments) || this;
     
-    this.constructView();
-    enablePinchToZoom(this);
-    enableTapToFocus(this);
+    _this.constructView();
+    enablePinchToZoom(_this);
+    enableTapToFocus(_this);
+
+    return _this;
   }
   
   Camera.prototype.constructView = function() {
-    _this = this;
-    _nativeView = this.ios;
+    const _this = this;
+    const _nativeView = this.ios;
     
     _session = new AVCaptureSession();
     
@@ -52,8 +54,8 @@ NACamera.Camera = (function(_super) {
   
   Camera.prototype.onLayout = function(left, top, right, bottom) {
     _super.prototype.onLayout.call(this, left, top, right, bottom);
-    _this = this;
-    _nativeView = this.ios;
+    const _this = this;
+    const _nativeView = this.ios;
     
     if(_input) {
       _bounds = _nativeView.bounds;
@@ -68,34 +70,34 @@ NACamera.Camera = (function(_super) {
 // Start/stop camera
 NACamera.start = function() {
   if(_device) _session.startRunning();
-    else console.error("[NACamera.start] " + errorCameraDeviceUnavailable);
+    else console.error("[NACamera.start]", errorCameraDeviceUnavailable);
 };
 
 NACamera.stop = function() {
   if(_device) _session.stopRunning();
-    else console.error("[NACamera.stop] " + errorCameraDeviceUnavailable);
+    else console.error("[NACamera.stop]", errorCameraDeviceUnavailable);
 };
 
 // Capture photo
 NACamera.capturePhoto = function(props = {}) {
-  var defaults = {
+  const defaults = {
     saveToLibrary: false,
     mirrorCorrection: true,
     playSound: true,
     simulatorDebug: false,
     simulatorImage: ""
   };
-  for(var key in defaults) if(!props.hasOwnProperty(key)) props[key] = defaults[key];
+  for(let key in defaults) if(!props.hasOwnProperty(key)) props[key] = defaults[key];
   
   return new Promise(function(resolve, reject) {
     if(_output) {
-      var videoConnection = _output.connections[0];
+      const videoConnection = _output.connections[0];
 
       _output.captureStillImageAsynchronouslyFromConnectionCompletionHandler(videoConnection, function(buffer, error) {
         if(NACamera.getDevicePosition() === "back") props.mirrorCorrection = false;
         
-        var imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer);
-        var image = applyAspectFillImageInRect(UIImage.imageWithData(imageData), _bounds, props.mirrorCorrection);
+        const imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer);
+        const image = applyAspectFillImageInRect(UIImage.imageWithData(imageData), _bounds, props.mirrorCorrection);
         
         if(props.saveToLibrary) UIImageWriteToSavedPhotosAlbum(image, null, null, null);
         if(props.playSound) AudioServicesPlaySystemSound(144);
@@ -103,7 +105,7 @@ NACamera.capturePhoto = function(props = {}) {
         resolve(imageSource.fromNativeSource(image), props.saveToLibrary);
       });
     } else if(props.simulatorDebug) {
-      var image = applyAspectFillImageInRect(props.simulatorImage.ios.image, props.simulatorImage.ios.bounds);
+      const image = applyAspectFillImageInRect(props.simulatorImage.ios.image, props.simulatorImage.ios.bounds);
       
       if(props.saveToLibrary) UIImageWriteToSavedPhotosAlbum(image, null, null, null);
       if(props.playSound) AudioServicesPlaySystemSound(144);
@@ -123,7 +125,7 @@ NACamera.saveToLibrary = function(image) {
 
 // Get device state
 NACamera.devicesAvailable = function() {
-  var devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo);
+  const devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo);
   return (devices.count > 0 ? true : false);
 };
 
@@ -236,26 +238,26 @@ NACamera.hasDevicePosition = function(position) {
 module.exports = NACamera;
 
 
-/* INTERNAL METHODS
+/* INTERNAL FUNCTIONS
 ==================================== */
 // Camera with position
-var deviceWithPosition = function(position) {
-  var devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo);
+function deviceWithPosition(position) {
+  const devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo);
   
-  for(var i = 0; i < devices.count; i++) if(devices[i].position == position) return devices[i];
+  for(let i = 0; i < devices.count; i++) if(devices[i].position == position) return devices[i];
   return null;
-};
+}
 
 // Apply AspectFill ratio on captured photo
-var applyAspectFillImageInRect = function(image, bounds, mirror = false) {
-  var minSize = Math.min(image.size.width, image.size.height);
-  var aspectRatio = Math.min(minSize / bounds.size.width, minSize / bounds.size.height);
-  var width = Math.round(bounds.size.width * aspectRatio);
-  var height = Math.round(bounds.size.height * aspectRatio);
-  var rect = { origin: { x: 0, y: 0 }, size: { width: width, height: height } };
+function applyAspectFillImageInRect(image, bounds, mirror = false) {
+  const minSize = Math.min(image.size.width, image.size.height);
+  const aspectRatio = Math.min(minSize / bounds.size.width, minSize / bounds.size.height);
+  const width = Math.round(bounds.size.width * aspectRatio);
+  const height = Math.round(bounds.size.height * aspectRatio);
+  const rect = { origin: { x: 0, y: 0 }, size: { width: width, height: height } };
   
-  var renderView = UIView.alloc().initWithFrame(rect);
-  var imageView = UIImageView.alloc().initWithFrame(renderView.bounds);
+  const renderView = UIView.alloc().initWithFrame(rect);
+  const imageView = UIImageView.alloc().initWithFrame(renderView.bounds);
   
   imageView.image = image;
   imageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -264,19 +266,19 @@ var applyAspectFillImageInRect = function(image, bounds, mirror = false) {
   if(mirror) imageView.transform = CGAffineTransformMakeScale(-1, 1);
   
   UIGraphicsBeginImageContext(rect.size);
-  var context = UIGraphicsGetCurrentContext();
+  const context = UIGraphicsGetCurrentContext();
   renderView.layer.renderInContext(context);
-  var newImage = UIGraphicsGetImageFromCurrentImageContext();
+  const newImage = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
-//  var imageData = UIImageJPEGRepresentation(newImage, 1);
+//  const imageData = UIImageJPEGRepresentation(newImage, 1);
   
   return newImage;
 //  return UIImage.imageWithData(imageData);
-};
+}
 
 // Pinch to zoom
-var enablePinchToZoom = function(view) {
-  var lastZoomFactor = 1;
+function enablePinchToZoom(view) {
+  let lastZoomFactor = 1;
   
   view.on("pinch", function(e) {
     if(_device) {
@@ -284,9 +286,11 @@ var enablePinchToZoom = function(view) {
         clearTimeout(_onFocusDelay);
         lastZoomFactor = _device.videoZoomFactor;
       } else if(e.state === 2) {
-        var zoomFactor = lastZoomFactor * e.scale;
-        zoomFactor = Math.min(_device.activeFormat.videoMaxZoomFactor, zoomFactor);
-        zoomFactor = Math.max(1, zoomFactor);
+        const zoomFactor = (() => {
+          let value = lastZoomFactor * e.scale;
+          value = Math.min(_device.activeFormat.videoMaxZoomFactor, zoomFactor);
+          return Math.max(1, value);
+        })();
 
         _device.lockForConfiguration(null);
         _device.videoZoomFactor = zoomFactor;
@@ -301,14 +305,14 @@ var enablePinchToZoom = function(view) {
       }
     }
   });
-};
+}
 
 // Tap to focus
-var enableTapToFocus = function(view) {
-  var focusPoint = {};
+function enableTapToFocus(view) {
+  const focusPoint = {};
   
-  var focusCircle = new AbsoluteLayout();
-  var focusCircleSize = 48;
+  const focusCircle = new AbsoluteLayout();
+  const focusCircleSize = 48;
   focusCircle.width = focusCircle.height = focusCircleSize + 8;
   focusCircle.horizontalAlignment = "left";
   focusCircle.opacity = 0;
@@ -318,14 +322,14 @@ var enableTapToFocus = function(view) {
   focusCircle.ios.layer.shadowOpacity = 0.25;
   focusCircle.ios.layer.shadowRadius = 2;
   
-  var focusCircleOuter = new StackLayout();
+  const focusCircleOuter = new StackLayout();
   focusCircleOuter.width = focusCircleOuter.height = focusCircleSize;
   focusCircleOuter.marginTop = focusCircleOuter.marginLeft = 4;
   focusCircleOuter.borderWidth = 1;
   focusCircleOuter.borderColor = "#ffffff";
   focusCircleOuter.borderRadius = focusCircleSize / 2;
   
-  var focusCircleInner = new StackLayout();
+  const focusCircleInner = new StackLayout();
   focusCircleInner.width = focusCircleInner.height = focusCircleSize - 6;
   focusCircleInner.marginTop = focusCircleInner.marginLeft = 7;
   focusCircleInner.backgroundColor = new colorModule.Color(128, 255, 255, 255);
@@ -336,8 +340,8 @@ var enableTapToFocus = function(view) {
   focusCircle.addChild(focusCircleInner);
   view.addChild(focusCircle);
   
-  var animateFocusTimeout;
-  var animateFocusCircle = function() {
+  let animateFocusTimeout;
+  const animateFocusCircle = function() {
     if(animateFocusTimeout) clearTimeout(animateFocusTimeout);
     
     focusCircle.translateX = focusPoint.x - (focusCircle.width / 2);
@@ -346,8 +350,8 @@ var enableTapToFocus = function(view) {
     focusCircleInner.scaleX = focusCircleInner.scaleY = 0.01;
     focusCircleInner.opacity = 1;
     
-    var duration = 250;
-    var props = { opacity: 1, scale: { x: 1.2, y: 1.2 }, translate: { x: focusCircle.translateX, y: focusCircle.translateY }, duration: duration };
+    const duration = 250;
+    const props = { opacity: 1, scale: { x: 1.2, y: 1.2 }, translate: { x: focusCircle.translateX, y: focusCircle.translateY }, duration: duration };
     
     focusCircle.animate(props).then(function() {
       props.scale = { x: 1, y: 1 };

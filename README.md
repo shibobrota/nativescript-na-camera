@@ -205,6 +205,10 @@ Please post an issue if you have any other ideas!
 
 ## History
 
+#### Version 2.0.0 (April #, 2017)
+
+- This plugin now requires TNS 3.0.0+
+
 #### Version 1.2.1 (November 21, 2016)
 
 - This plugin now requires TNS 2.4.0+

@@ -6,14 +6,15 @@
   "nativescript": {
     "id": "org.nativescript.demo",
     "tns-ios": {
-      "version": "2.4.0"
+      "version": "3.0.0-rc.1-2017-3-28-2"
     }
   },
   "dependencies": {
     "nativescript-na-camera": "file:..",
-    "tns-core-modules": "^2.4.0"
+    "nativescript-theme-core": "~1.0.2",
+    "tns-core-modules": "rc"
   },
-  "scripts": {
-    "ios": "tns livesync --watch --emulator"
+  "devDependencies": {
+    "nativescript-dev-android-snapshot": "^0.*.*"
   }
 }
