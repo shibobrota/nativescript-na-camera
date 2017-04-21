@@ -2,45 +2,39 @@ const NACamera = require("nativescript-na-camera");
 const observable = require("data/observable");
 const gestures = require("ui/gestures");
 
-let cameraPreview, simulatorPreview, capturePreview;
-let page, pageData, createPageData = function() {
-  return observable.fromObject({
-    simulatorImage: "http://i.imgur.com/bSkPf1j.jpg",
-    simulatorDebug: true,
-    capturePreview: null,
-    cameraAvailable: null,
-    torchMode: false,
-    flashMode: false,
-    cameraPosition: null,
-    saveToLibrary: false
-  });
-};
+let cameraPreview, capturePreview;
+let page, pageData, createPageData = () => observable.fromObject({
+  capturePreview: null,
+  cameraAvailable: null,
+  torchMode: false,
+  flashMode: false,
+  cameraPosition: null,
+  saveToLibrary: false
+});
 
 exports.onNavigatingTo = function(args) {
   page = args.object;
   page.bindingContext = pageData = createPageData();
-  
   page.backgroundSpanUnderStatusBar = true;
+  
+  if(page.ios) {
+    UIApplication.sharedApplication.setStatusBarStyleAnimated(UIStatusBarStyle.UIStatusBarStyleLightContent, true);
+  }
   
   pageData.set("cameraAvailable", NACamera.devicesAvailable());
   pageData.set("cameraPosition", NACamera.getDevicePosition());
   
   cameraPreview = page.getViewById("cameraPreview");
-  simulatorPreview = page.getViewById("simulatorPreview");
   capturePreview = page.getViewById("capturePreview");
   
-  NACamera.start();
-  
-  if(page.ios) {
-    UIApplication.sharedApplication.setStatusBarStyleAnimated(UIStatusBarStyle.UIStatusBarStyleLightContent, true);
-  }
+  // Request permission to use camera and library, then start the camera.
+  Promise.all([NACamera.requestCameraAccess(), NACamera.requestLibraryAccess()])
+    .then(() => NACamera.start());
 };
 
 exports.capturePhoto = function(args) {
-  NACamera.capturePhoto({
-    saveToLibrary: pageData.saveToLibrary,
-    simulatorDebug: pageData.simulatorDebug,
-    simulatorImage: pageData.simulatorDebug ? simulatorPreview : false
+  cameraPreview.capturePhoto({
+    saveToLibrary: pageData.saveToLibrary
   }).then((image, savedToLibrary) => {
     NACamera.stop();
     
@@ -49,10 +43,6 @@ exports.capturePhoto = function(args) {
     
     pageData.set("capturePreview", image);
     pageData.set("saveToLibrary", !pageData.saveToLibrary ? true : false);
-    
-    if(page.ios) {
-      UIApplication.sharedApplication.setStatusBarHiddenWithAnimation(true, UIStatusBarAnimation.UIStatusBarAnimationSlide);
-    }
   });
 };
 

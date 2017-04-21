@@ -1,39 +1,41 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="onNavigatingTo"
-  xmlns:NACamera="nativescript-na-camera">
+      xmlns:NACamera="nativescript-na-camera">
   
-  <GridLayout rows="auto, *" id="cameraContainer" marginTop="{{ capturePreview ? 0 : -20 }}">
-    <NACamera:Camera row="0" id="cameraPreview" />
+  <GridLayout id="cameraContainer" rows="auto, *">
+    <!-- The camera preview -->
+    <NACamera:Camera rowSpan="2" id="cameraPreview" />
     
-    <GridLayout row="0" visibility="{{ simulatorDebug ? 'visible' : 'collapsed' }}">
-      <Image src="{{ simulatorImage }}" id="simulatorPreview" stretch="aspectFill" />
-    </GridLayout>
+    <!-- The captured photo -->
+    <Image rowSpan="2" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFill" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" tap="test" />
     
-    <Image row="0" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFill" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" tap="test" />
-    
-    <GridLayout row="1" rows="*, *, *">
-      <StackLayout row="0" orientation="horizontal" horizontalAlignment="center">
-        <Button text="&#xf0eb;" class="{{ 'icon button-small' + (torchMode ? ' button-on' : ' button-off') }}" id="toggleTorchMode" tap="toggleTorchMode"
-                opacity="{{ cameraAvailable && cameraPosition === 'back' ? 1 : 0.25 }}"
+    <!-- Top buttons -->
+    <GridLayout columns="auto, *" marginTop="20">
+      <Button col="0" text="&#xf019;" class="icon button small" id="saveToLibrary" tap="saveToLibrary"
+              horizontalAlignment="left"
+              opacity="{{ saveToLibrary ? 1 : 0.5 }}"
+              isUserInteractionEnabled="{{ saveToLibrary ? true : false }}" />
+      <StackLayout col="1" orientation="horizontal" horizontalAlignment="right">
+        <Button text="&#xf0eb;" class="{{ torchMode, 'icon button small ' + (torchMode ? 'on' : 'off') }}" id="toggleTorchMode" tap="toggleTorchMode"
+                opacity="{{ cameraAvailable && cameraPosition === 'back' ? 1 : 0.5 }}"
                 isUserInteractionEnabled="{{ cameraAvailable && cameraPosition === 'back' ? true : false }}" />
-        <Button text="&#xf0e7;" class="{{ 'icon button-small' + (flashMode ? ' button-on' : ' button-off') }}" id="toggleFlashMode" tap="toggleFlashMode"
-                opacity="{{ cameraAvailable && cameraPosition === 'back' ? 1 : 0.25 }}"
+        <Button text="&#xf0e7;" class="{{ flashMode, 'icon button small ' + (flashMode ? 'on' : 'off') }}" id="toggleFlashMode" tap="toggleFlashMode"
+                opacity="{{ cameraAvailable && cameraPosition === 'back' ? 1 : 0.5 }}"
                 isUserInteractionEnabled="{{ cameraAvailable && cameraPosition === 'back' ? true : false }}" />
-        <Button text="&#xf021;" class="icon button-small" id="toggleCameraPosition" tap="toggleCameraPosition"
-                opacity="{{ cameraAvailable ? 1 : 0.25 }}"
+        <Button text="&#xf021;" class="icon button small" id="toggleCameraPosition" tap="toggleCameraPosition"
+                opacity="{{ cameraAvailable ? 1 : 0.5 }}"
                 isUserInteractionEnabled="{{ cameraAvailable ? true : false }}" />
       </StackLayout>
-      
-      <Button row="1" text="&#xf030;" class="icon button-big" id="capturePhoto" tap="capturePhoto"
-              opacity="{{ cameraAvailable || simulatorDebug ? 1 : 0.25 }}"
-              isUserInteractionEnabled="{{ cameraAvailable || simulatorDebug ? true : false }}"
-              visibility="{{ !capturePreview ? 'visible' : 'collapsed' }}" />
-      <Button row="1" text="&#xf00d;" class="icon button-big" id="newPhoto" tap="newPhoto"
-              visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" />
-      
-      <Button row="2" text="&#xf019;" class="icon button-small" id="saveToLibrary" tap="saveToLibrary"
-              opacity="{{ saveToLibrary ? 1 : 0.25 }}"
-              isUserInteractionEnabled="{{ saveToLibrary ? true : false }}" />
     </GridLayout>
+    
+    <!-- Camera buttons -->
+    <Button row="1" class="icon button big" id="capturePhoto" tap="capturePhoto"
+            verticalAlignment="bottom"
+            opacity="{{ cameraAvailable ? 1 : 0.5 }}"
+            isUserInteractionEnabled="{{ cameraAvailable ? true : false }}"
+            visibility="{{ !capturePreview ? 'visible' : 'collapsed' }}" />
+    <Button row="1" text="&#xf00d;" class="icon button big" id="newPhoto" tap="newPhoto"
+            verticalAlignment="bottom"
+            visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" />
   </GridLayout>
   
 </Page>

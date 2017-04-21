@@ -7,46 +7,29 @@ const StackLayout = require("ui/layouts/stack-layout").StackLayout;
 const AbsoluteLayout = require("ui/layouts/absolute-layout").AbsoluteLayout;
 const colorModule = require("color");
 
-const NACamera = {};
-let _bounds, _session, _device, _input, _output, _previewLayer;
+let _session, _device, _input, _output;
 let _torchMode = false, _flashMode = false;
-let _onFocusDelay;
 const errorCameraDeviceUnavailable = "Error: Camera device unavailable.";
 const errorCameraTorchUnavailable = "Error: Camera torch unavailable.";
 const errorCameraFlashUnavailable = "Error: Camera flash unavailable.";
+const errorAccessToCameraDeniedByUser = "Error: Access to camera denied by user.";
+const errorAccessToLibraryDeniedByUser = "Error: Access to library denied by user.";
+
+const NACamera = {};
 
 NACamera.Camera = (function(_super) {
   __extends(Camera, _super);
   function Camera() {
     const _this = _super !== null && _super.apply(this, arguments) || this;
+
+    _this._bounds = null;
+    _this._previewLayer = null;
+    _this._onFocusDelay = null;
     
-    _this.constructView();
-    enablePinchToZoom(_this);
-    enableTapToFocus(_this);
+    _this._init();
 
     return _this;
   }
-  
-  Camera.prototype.constructView = function() {
-    const _this = this;
-    const _nativeView = this.ios;
-    
-    _session = new AVCaptureSession();
-    
-    _device = deviceWithPosition(AVCaptureDevicePositionBack);
-    _input = AVCaptureDeviceInput.deviceInputWithDeviceError(_device, null);
-    
-    if(_input) {
-      _session.addInput(_input);
-      
-      _output = new AVCaptureStillImageOutput();
-      _session.addOutput(_output);
-      
-      _previewLayer = AVCaptureVideoPreviewLayer.layerWithSession(_session);
-      _previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-      _nativeView.layer.addSublayer(_previewLayer);
-    }
-  };
   
   Camera.prototype.onUnloaded = function() {
     if(_device) _session.stopRunning();
@@ -54,18 +37,112 @@ NACamera.Camera = (function(_super) {
   
   Camera.prototype.onLayout = function(left, top, right, bottom) {
     _super.prototype.onLayout.call(this, left, top, right, bottom);
-    const _this = this;
-    const _nativeView = this.ios;
+    const nativeView = this.ios;
     
     if(_input) {
-      _bounds = _nativeView.bounds;
-      _previewLayer.frame = _bounds;
-      _previewLayer.position = CGPointMake(CGRectGetMidX(_bounds), CGRectGetMidY(_bounds));
+      this._bounds = nativeView.bounds;
+      this._previewLayer.frame = this._bounds;
+      this._previewLayer.position = CGPointMake(CGRectGetMidX(this._bounds), CGRectGetMidY(this._bounds));
     }
+  };
+
+  Camera.prototype.capturePhoto = function(props = {}) {
+    const defaults = {
+      saveToLibrary: false,
+      mirrorCorrection: true,
+      playSound: true
+    };
+    for(let key in defaults) if(!props.hasOwnProperty(key)) props[key] = defaults[key];
+    
+    return new Promise((resolve, reject) => {
+      if(_output) {
+        const videoConnection = _output.connections[0];
+
+        _output.captureStillImageAsynchronouslyFromConnectionCompletionHandler(videoConnection, (buffer, error) => {
+          if(NACamera.getDevicePosition() === "back") props.mirrorCorrection = false;
+          
+          const imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer);
+          const image = applyAspectFillImageInRect(UIImage.imageWithData(imageData), this._bounds, props.mirrorCorrection);
+          
+          if(props.saveToLibrary) UIImageWriteToSavedPhotosAlbum(image, null, null, null);
+          if(props.playSound) AudioServicesPlaySystemSound(1108);
+          
+          resolve(imageSource.fromNativeSource(image), props.saveToLibrary);
+        });
+      } else {
+        console.error("[NACamera.capturePhoto]" + errorCameraDeviceUnavailable);
+        reject(errorCameraDeviceUnavailable);
+      }
+    });
+  };
+  
+  Camera.prototype._init = function() {
+    const nativeView = this.ios;
+    
+    _session = new AVCaptureSession();
+    _device = deviceWithPosition(AVCaptureDevicePositionBack);
+    _input = AVCaptureDeviceInput.deviceInputWithDeviceError(_device, null);
+    
+    if(_input) {
+      _session.addInput(_input);
+      _output = new AVCaptureStillImageOutput();
+      _session.addOutput(_output);
+      
+      this._previewLayer = AVCaptureVideoPreviewLayer.layerWithSession(_session);
+      this._previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+      this.nativeView.layer.addSublayer(this._previewLayer);
+    }
+
+    enablePinchToZoom(this);
+    enableTapToFocus(this);
   };
   
   return Camera;
 })(StackLayout);
+
+// Request access to camera
+NACamera.requestCameraAccess = function() {
+  return new Promise((resolve, reject) => {
+    const status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo);
+
+    if(status === AVAuthorizationStatusAuthorized) {
+      resolve(true);
+    } else if(status === AVAuthorizationStatusNotDetermined) {
+      AVCaptureDevice.requestAccessForMediaTypeCompletionHandler(AVMediaTypeVideo, granted => {
+        if(granted) {
+          resolve(true);
+        } else {
+          reject(false);
+        }
+      });
+    } else {
+      // console.error(new Error("[NACamera.requestAccess]", errorAccessToCameraDeniedByUser));
+      reject(false);
+    }
+  });
+};
+
+// Request access to library
+NACamera.requestLibraryAccess = function() {
+  return new Promise((resolve, reject) => {
+    const status = PHPhotoLibrary.authorizationStatus();
+
+    if(status === PHAuthorizationStatusAuthorized) {
+      resolve(true);
+    } else if(status === PHAuthorizationStatusNotDetermined) {
+      PHPhotoLibrary.requestAuthorization(authStatus => {
+        if(authStatus === PHAuthorizationStatusAuthorized) {
+          resolve(true);
+        } else {
+          reject(false);
+        }
+      });
+    } else {
+      // console.error(new Error("[NACamera.requestAccess]", errorAccessToLibraryDeniedByUser));
+      reject(false);
+    }
+  });
+};
 
 // Start/stop camera
 NACamera.start = function() {
@@ -76,45 +153,6 @@ NACamera.start = function() {
 NACamera.stop = function() {
   if(_device) _session.stopRunning();
     else console.error("[NACamera.stop]", errorCameraDeviceUnavailable);
-};
-
-// Capture photo
-NACamera.capturePhoto = function(props = {}) {
-  const defaults = {
-    saveToLibrary: false,
-    mirrorCorrection: true,
-    playSound: true,
-    simulatorDebug: false,
-    simulatorImage: ""
-  };
-  for(let key in defaults) if(!props.hasOwnProperty(key)) props[key] = defaults[key];
-  
-  return new Promise(function(resolve, reject) {
-    if(_output) {
-      const videoConnection = _output.connections[0];
-
-      _output.captureStillImageAsynchronouslyFromConnectionCompletionHandler(videoConnection, function(buffer, error) {
-        if(NACamera.getDevicePosition() === "back") props.mirrorCorrection = false;
-        
-        const imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer);
-        const image = applyAspectFillImageInRect(UIImage.imageWithData(imageData), _bounds, props.mirrorCorrection);
-        
-        if(props.saveToLibrary) UIImageWriteToSavedPhotosAlbum(image, null, null, null);
-        if(props.playSound) AudioServicesPlaySystemSound(144);
-        
-        resolve(imageSource.fromNativeSource(image), props.saveToLibrary);
-      });
-    } else if(props.simulatorDebug) {
-      const image = applyAspectFillImageInRect(props.simulatorImage.ios.image, props.simulatorImage.ios.bounds);
-      
-      if(props.saveToLibrary) UIImageWriteToSavedPhotosAlbum(image, null, null, null);
-      if(props.playSound) AudioServicesPlaySystemSound(144);
-      resolve(imageSource.fromNativeSource(image), props.saveToLibrary);
-    } else {
-      console.error("[NACamera.capturePhoto]" + errorCameraDeviceUnavailable);
-      reject(errorCameraDeviceUnavailable);
-    }
-  });
 };
 
 // Save to library
@@ -133,7 +171,6 @@ NACamera.devicesAvailable = function() {
 NACamera.setTorchMode = function(condition) {
   if(typeof condition !== "undefined" && _device && _device.hasTorch) {
     _device.lockForConfiguration(null);
-//    _session.beginConfiguration();
     
     if(condition === true) {
       _device.torchMode = AVCaptureTorchModeOn;
@@ -146,7 +183,6 @@ NACamera.setTorchMode = function(condition) {
     }
     
     _device.unlockForConfiguration();
-//    _session.commitConfiguration();
   } else {
     console.error("[NACamera.setTorchMode] " + errorCameraTorchUnavailable);
     _torchMode = false;
@@ -257,10 +293,12 @@ function applyAspectFillImageInRect(image, bounds, mirror = false) {
   const rect = { origin: { x: 0, y: 0 }, size: { width: width, height: height } };
   
   const renderView = UIView.alloc().initWithFrame(rect);
-  const imageView = UIImageView.alloc().initWithFrame(renderView.bounds);
+  const imageView = UIImageView.alloc().init();
   
   imageView.image = image;
   imageView.contentMode = UIViewContentModeScaleAspectFill;
+  imageView.frame = rect; // This somehow needs to be set after imageView.contentMode
+  imageView.clipsToBounds = true;
   renderView.addSubview(imageView);
   
   if(mirror) imageView.transform = CGAffineTransformMakeScale(-1, 1);
@@ -277,18 +315,19 @@ function applyAspectFillImageInRect(image, bounds, mirror = false) {
 }
 
 // Pinch to zoom
-function enablePinchToZoom(view) {
+function enablePinchToZoom(_this) {
   let lastZoomFactor = 1;
+  let zoomFactor;
   
-  view.on("pinch", function(e) {
+  _this.on("pinch", e => {
     if(_device) {
       if(e.state === 1) {
-        clearTimeout(_onFocusDelay);
+        clearTimeout(_this._onFocusDelay);
         lastZoomFactor = _device.videoZoomFactor;
       } else if(e.state === 2) {
-        const zoomFactor = (() => {
+        zoomFactor = (() => {
           let value = lastZoomFactor * e.scale;
-          value = Math.min(_device.activeFormat.videoMaxZoomFactor, zoomFactor);
+          value = Math.min(_device.activeFormat.videoMaxZoomFactor, value);
           return Math.max(1, value);
         })();
 
@@ -300,7 +339,7 @@ function enablePinchToZoom(view) {
       }
     } else {
       if(e.state === 1) {
-        clearTimeout(_onFocusDelay);
+        clearTimeout(_this._onFocusDelay);
         console.error(errorCameraDeviceUnavailable);
       }
     }
@@ -308,7 +347,7 @@ function enablePinchToZoom(view) {
 }
 
 // Tap to focus
-function enableTapToFocus(view) {
+function enableTapToFocus(_this) {
   const focusPoint = {};
   
   const focusCircle = new AbsoluteLayout();
@@ -338,7 +377,7 @@ function enableTapToFocus(view) {
   
   focusCircle.addChild(focusCircleOuter);
   focusCircle.addChild(focusCircleInner);
-  view.addChild(focusCircle);
+  _this.addChild(focusCircle);
   
   let animateFocusTimeout;
   const animateFocusCircle = function() {
@@ -365,12 +404,12 @@ function enableTapToFocus(view) {
     });
   };
   
-  view.on("touch", function(e) {
+  _this.on("touch", e => {
     if(e.action === "down" && e.getPointerCount() === 1) {
       focusPoint.x = e.getX();
       focusPoint.y = e.getY();
       
-      _onFocusDelay = setTimeout(function() {
+      _this._onFocusDelay = setTimeout(function() {
         animateFocusCircle();
         
         if(_device) {
@@ -391,6 +430,6 @@ function enableTapToFocus(view) {
       }, 200);
     }
     
-    if(e.action === "move" && _onFocusDelay) clearTimeout(_onFocusDelay);
+    if(e.action === "move" && _this._onFocusDelay) clearTimeout(_this._onFocusDelay);
   });
 };

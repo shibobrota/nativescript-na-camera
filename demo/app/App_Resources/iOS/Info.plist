@@ -57,5 +57,7 @@
     <string>Enable Photos access to import photos from your library.</string>
     <key>NSCameraUsageDescription</key>
     <string>Enable Camera to take photos.</string>
+    <key>UIFileSharingEnabled</key>
+    <string>Enable iTunes file sharing.</string>
   </dict>
 </plist>

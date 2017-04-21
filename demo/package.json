@@ -4,15 +4,15 @@
   "readme": "NativeScript Application",
   "repository": "<fill-your-repository-here>",
   "nativescript": {
-    "id": "org.nativescript.demo",
+    "id": "org.nativescript.nacamera.demo",
     "tns-ios": {
-      "version": "3.0.0-rc.1-2017-3-28-2"
+      "version": "3.0.0-rc.2"
     }
   },
   "dependencies": {
     "nativescript-na-camera": "file:..",
     "nativescript-theme-core": "~1.0.2",
-    "tns-core-modules": "rc"
+    "tns-core-modules": "^3.0.0-rc.2"
   },
   "devDependencies": {
     "nativescript-dev-android-snapshot": "^0.*.*"
