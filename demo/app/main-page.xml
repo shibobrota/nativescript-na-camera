@@ -3,10 +3,10 @@
   
   <GridLayout id="cameraContainer" rows="auto, *">
     <!-- The camera preview -->
-    <NACamera:Camera rowSpan="2" id="cameraPreview" />
+    <NACamera:Camera rowSpan="2" id="cameraView" />
     
     <!-- The captured photo -->
-    <Image rowSpan="2" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFit" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" tap="test" />
+    <Image rowSpan="2" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFit" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" />
     
     <!-- Top buttons -->
     <GridLayout columns="auto, *" marginTop="20">

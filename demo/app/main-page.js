@@ -2,7 +2,7 @@ const NACamera = require("nativescript-na-camera");
 const observable = require("data/observable");
 const gestures = require("ui/gestures");
 
-let cameraPreview, capturePreview;
+let cameraView, capturePreview;
 let page, pageData, createPageData = () => observable.fromObject({
   capturePreview: null,
   cameraAvailable: null,
@@ -24,7 +24,7 @@ exports.onNavigatingTo = function(args) {
   pageData.set("cameraAvailable", NACamera.devicesAvailable());
   pageData.set("cameraPosition", NACamera.getDevicePosition());
   
-  cameraPreview = page.getViewById("cameraPreview");
+  cameraView = page.getViewById("cameraView");
   capturePreview = page.getViewById("capturePreview");
   
   // Request permission to use camera and library, then start the camera.
@@ -33,7 +33,7 @@ exports.onNavigatingTo = function(args) {
 };
 
 exports.capturePhoto = function(args) {
-  cameraPreview.capturePhoto({
+  cameraView.capturePhoto({
     saveToLibrary: pageData.saveToLibrary
   }).then((image, savedToLibrary) => {
     NACamera.stop();
