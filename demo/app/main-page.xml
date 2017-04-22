@@ -6,7 +6,7 @@
     <NACamera:Camera rowSpan="2" id="cameraPreview" />
     
     <!-- The captured photo -->
-    <Image rowSpan="2" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFill" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" tap="test" />
+    <Image rowSpan="2" src="{{ capturePreview }}" id="capturePreview" stretch="aspectFit" visibility="{{ capturePreview ? 'visible' : 'collapsed' }}" tap="test" />
     
     <!-- Top buttons -->
     <GridLayout columns="auto, *" marginTop="20">

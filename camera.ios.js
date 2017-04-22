@@ -43,6 +43,7 @@ NACamera.Camera = (function(_super) {
       this._bounds = nativeView.bounds;
       this._previewLayer.frame = this._bounds;
       this._previewLayer.position = CGPointMake(CGRectGetMidX(this._bounds), CGRectGetMidY(this._bounds));
+      this._previewLayer.connection.videoOrientation = this._videoOrientationFromCurrentDeviceOrientation();
     }
   };
 
@@ -57,6 +58,8 @@ NACamera.Camera = (function(_super) {
     return new Promise((resolve, reject) => {
       if(_output) {
         const videoConnection = _output.connections[0];
+
+        videoConnection.videoOrientation = this._videoOrientationFromCurrentDeviceOrientation();
 
         _output.captureStillImageAsynchronouslyFromConnectionCompletionHandler(videoConnection, (buffer, error) => {
           if(NACamera.getDevicePosition() === "back") props.mirrorCorrection = false;
@@ -79,9 +82,9 @@ NACamera.Camera = (function(_super) {
   Camera.prototype._init = function() {
     const nativeView = this.ios;
     
-    _session = new AVCaptureSession();
-    _device = deviceWithPosition(AVCaptureDevicePositionBack);
-    _input = AVCaptureDeviceInput.deviceInputWithDeviceError(_device, null);
+    if(typeof _session === "undefined") _session = new AVCaptureSession();
+    if(typeof _device === "undefined") _device = deviceWithPosition(AVCaptureDevicePositionBack);
+    if(typeof _input === "undefined") _input = AVCaptureDeviceInput.deviceInputWithDeviceError(_device, null);
     
     if(_input) {
       _session.addInput(_input);
@@ -95,6 +98,17 @@ NACamera.Camera = (function(_super) {
 
     enablePinchToZoom(this);
     enableTapToFocus(this);
+  };
+
+  Camera.prototype._videoOrientationFromCurrentDeviceOrientation = function() {
+    const deviceOrientation = UIApplication.sharedApplication.statusBarOrientation;
+
+    switch(deviceOrientation) {
+      case UIInterfaceOrientationPortrait:           return AVCaptureVideoOrientationPortrait;
+      case UIInterfaceOrientationLandscapeLeft:      return AVCaptureVideoOrientationLandscapeLeft;
+      case UIInterfaceOrientationLandscapeRight:     return AVCaptureVideoOrientationLandscapeRight;
+      case UIInterfaceOrientationPortraitUpsideDown: return AVCaptureVideoOrientationPortraitUpsideDown;
+    }
   };
   
   return Camera;
