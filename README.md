@@ -210,6 +210,7 @@ Please post an issue if you have any other ideas!
 - This plugin now requires TNS 3.0.0+.
 - Shutter sound now works.
 - Fixed bug that stretched captured photos at specific aspect ratios.
+- Fxied device orientation issue.
 
 #### Version 1.2.1 (November 21, 2016)
 
