@@ -8,8 +8,6 @@ A NativeScript camera that utilizes *AVFoundation* for iOS.
 
 ## Installation
 
-**Prerequisites:** TNS 2.4.0+
-
 `$ tns plugin add nativescript-na-camera`
 
 ## Usage
@@ -205,11 +203,7 @@ Please post an issue if you have any other ideas!
 
 ## History
 
-#### Version 1.2.1 (November 21, 2016)
-
-- This plugin now requires TNS 2.4.0+
-
-#### Version 1.2.0 (November 21, 2016)
+#### Version 1.1.0 (November 21, 2016)
 
 - Pinch-to-zoom feature
 - Tap-to-focus feature
@@ -225,4 +219,4 @@ Please post an issue if you have any other ideas!
 
 ## License
 
-[MIT](/LICENSE) - for {N} version 2.4.0+
+[MIT](/LICENSE) - for {N} version 2.0.0+

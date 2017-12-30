@@ -1,33 +1,57 @@
 {
-  "name": "nativescript-na-camera",
-  "version": "1.2.1",
+  "_from": "nativescript-na-camera@^1.2.0",
+  "_id": "nativescript-na-camera@1.2.0",
+  "_inBundle": false,
+  "_integrity": "sha1-J0+3BMkQjCJyfxaf/zBJLWJsA2A=",
+  "_location": "/nativescript-na-camera",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "nativescript-na-camera@^1.2.0",
+    "name": "nativescript-na-camera",
+    "escapedName": "nativescript-na-camera",
+    "rawSpec": "^1.2.0",
+    "saveSpec": null,
+    "fetchSpec": "^1.2.0"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/nativescript-na-camera/-/nativescript-na-camera-1.2.0.tgz",
+  "_shasum": "274fb704c9108c22727f169fff30492d626c0360",
+  "_spec": "nativescript-na-camera@^1.2.0",
+  "_where": "/Users/sumathi/panama",
+  "author": {
+    "name": "Filip Nordling",
+    "email": "nordlingfilip@gmail.com"
+  },
+  "bugs": {
+    "url": "https://github.com/nordlingart/nativescript-na-camera/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
   "description": "A NativeScript camera plugin",
+  "gitHead": "c7e662a2781c74949c9c941c62077cf66b97b000",
+  "homepage": "https://github.com/nordlingart/nativescript-na-camera#readme",
+  "keywords": [
+    "NativeScript",
+    "Nordling Art",
+    "Camera"
+  ],
   "main": "camera.js",
+  "name": "nativescript-na-camera",
   "nativescript": {
     "platforms": {
       "ios": "1.7.0"
     },
     "tns-ios": {
-      "version": "2.4.0"
+      "version": "2.3.0"
     }
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nordlingart/nativescript-na-camera.git"
   },
-  "keywords": [
-    "NativeScript",
-    "Nordling Art",
-    "Camera"
-  ],
-  "author": {
-    "name": "Filip Nordling",
-    "email": "nordlingfilip@gmail.com"
-  },
-  "readmeFilename": "README.md",
-  "gitHead": "c7e662a2781c74949c9c941c62077cf66b97b000",
-  "bugs": {
-    "url": "https://github.com/nordlingart/nativescript-na-camera/issues"
-  },
-  "homepage": "https://github.com/nordlingart/nativescript-na-camera#readme"
+  "version": "1.2.0"
 }
