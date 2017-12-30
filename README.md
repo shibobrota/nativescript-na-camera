@@ -2,7 +2,7 @@
 
 <img src="/docs/images/screenshot.png" width="188" alt="Demo screenshot (iOS)" title="Demo screenshot (iOS)" />
 
-**NOTE! Android is currently not supported.**
+Android support added by Shibo. (Not my work!)
 
 A NativeScript camera that utilizes *AVFoundation* for iOS.
 
