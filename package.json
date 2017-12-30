@@ -27,13 +27,13 @@
     "email": "nordlingfilip@gmail.com"
   },
   "bugs": {
-    "url": "https://github.com/nordlingart/nativescript-na-camera/issues"
+    "url": "https://github.com/kamlekar/nativescript-na-camera/issues"
   },
   "bundleDependencies": false,
   "deprecated": false,
   "description": "A NativeScript camera plugin",
   "gitHead": "c7e662a2781c74949c9c941c62077cf66b97b000",
-  "homepage": "https://github.com/nordlingart/nativescript-na-camera#readme",
+  "homepage": "https://github.com/kamlekar/nativescript-na-camera#readme",
   "keywords": [
     "NativeScript",
     "Nordling Art",
@@ -51,7 +51,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nordlingart/nativescript-na-camera.git"
+    "url": "git+https://github.com/kamlekar/nativescript-na-camera.git"
   },
   "version": "1.2.0"
 }
